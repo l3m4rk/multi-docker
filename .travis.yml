@@ -1,0 +1,24 @@
+sudo: required
+services:
+    - docker
+
+
+before_install:
+    - docker build -t l3m4rk/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true l3m4rk/react-test npm test
+
+after_success:
+    - docker build -t l3m4rk/multi-client ./client
+    - docker build -t l3m4rk/multi-nginx ./nginx
+    - docker build -t l3m4rk/multi-server ./server
+    - docker build -t l3m4rk/multi-worker ./worker
+    #Login to docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    #Take those images and push them to docker hub
+    - docker push l3m4rk/multi-client
+    - docker push l3m4rk/multi-nginx
+    - docker push l3m4rk/multi-server
+    - docker push l3m4rk/multi-worker
+
